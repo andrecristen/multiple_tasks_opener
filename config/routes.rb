@@ -1,3 +1,3 @@
 RedmineApp::Application.routes.draw do
-  match 'settings/plugin/multiple_tasks_opener', to: 'multiple_tasks_opener#settings', via: [:get, :post]
+  post 'multiple_tasks_opener/save_settings', to: 'multiple_tasks_opener#save_settings', as: 'save_settings'
 end
