@@ -1,0 +1,20 @@
+<p>
+  <label for="settings_open_issues">Tipo Tarefa (Origem):</label><br>
+  <%= select_tag 'settings[open_issues][type]', options_from_collection_for_select(Tracker.all, :id, :name, Setting.plugin_multiple_tasks_opener['open_issues']['type']), class: "form-control w-90 base-tracker", prompt: 'Nenhum' %>
+</p>
+
+<% Tracker.all.each do |tracker| %>
+  <div class="tracker-settings">
+    <h4><%= tracker.name %></h4>
+
+    <p>
+      <label for="settings_open_issues[<%= tracker.id %>][color]">Cor:</label><br>
+      <%= text_field_tag "settings[open_issues][#{tracker.id}][color]", Setting.plugin_multiple_tasks_opener.dig('open_issues', tracker.id.to_s, 'color'), class: "form-control w-90", placeholder: 'Cor do Tracker' %>
+    </p>
+
+    <p>
+      <label for="settings_open_issues[<%= tracker.id %>][description]">Descrição:</label><br>
+      <%= text_area_tag "settings[open_issues][#{tracker.id}][description]", Setting.plugin_multiple_tasks_opener.dig('open_issues', tracker.id.to_s, 'description'), class: "form-control w-90", placeholder: 'Descrição do Tracker' %>
+    </p>
+  </div>
+<% end %>
