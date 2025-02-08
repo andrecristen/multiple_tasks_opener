@@ -1,30 +1,25 @@
 <div id="tracker-origins">
   <% open_issues = Setting.plugin_multiple_tasks_opener['open_issues'] || {} %>
 
-  <pre>
-    <%= JSON.pretty_generate(open_issues) %>
-  </pre>
-
   <% open_issues.each_with_index do |(key, issue), index| %>
     <div class="tracker-origin" data-index="<%= index %>">
-      <h4>Origem <%= index + 1 %></h4>
-
+      <h3><%= index + 1 %>ª Configuração de origem:</h3>
       <p>
-        <label>Tipo Tarefa (Origem):</label><br>
+        <label>Tipo Origem:</label>
         <% selected_tracker_origin = issue['tracker_origin'].to_s.presence || '' %>
         <%= select_tag "settings[open_issues][#{key}][tracker_origin]",
                        options_from_collection_for_select(Tracker.all, :id, :name, selected_tracker_origin),
-                       class: "form-control w-90 base-tracker", prompt: 'Selecione um tipo de tarefa',
+                       class: "form-control w-90 base-tracker", prompt: 'Selecione',
                        'data-selected' => selected_tracker_origin %>
       </p>
 
       <div class="related-trackers">
-        <h5>Trackers Relacionados</h5>
+        <h4>Atividades de Abertura com Base na Origem:</h4>
 
         <% (issue['related_trackers'] || {}).each_with_index do |(r_key, tracker), r_index| %>
           <div class="related-tracker" data-rindex="<%= r_index %>">
             <p>
-              <label>Tipo:</label>
+              <label>Tipo Abertura:</label>
               <% selected_tracker_type = tracker['type'].to_s.presence || '' %>
               <%= select_tag "settings[open_issues][#{key}][related_trackers][#{r_key}][type]",
                              options_from_collection_for_select(Tracker.all, :id, :name, selected_tracker_type),
@@ -32,24 +27,24 @@
                              'data-selected' => selected_tracker_type %>
             </p>
             <p>
-              <label>Descrição:</label>
+              <label>Template Descrição Abertura:</label>
               <%= text_area_tag "settings[open_issues][#{key}][related_trackers][#{r_key}][template]",
                                 tracker['template'].to_s,
                                 class: "form-control w-90",
-                                placeholder: 'Descrição do Tracker' %>
+                                placeholder: 'Descrição de abertura', rows: 6 %>
             </p>
-            <button type="button" class="remove-related-tracker">Remover</button>
+            <button type="button" class="remove-related-tracker">Remover Abertura</button>
           </div>
         <% end %>
 
-        <button type="button" class="add-related-tracker">Adicionar Tracker Relacionado</button>
+        <button type="button" class="add-related-tracker">Adicionar Abertura</button>
       </div>
 
       <button type="button" class="remove-tracker-origin">Remover Origem</button>
     </div>
   <% end %>
 
-  <button type="button" id="add-tracker-origin">Adicionar Nova Origem</button>
+  <button type="button" id="add-tracker-origin" class="add-tracker-origin">Adicionar Nova Origem</button>
 </div>
 
 <script>
@@ -60,7 +55,7 @@
         function updateIndexes() {
             document.querySelectorAll(".tracker-origin").forEach((origin, index) => {
                 origin.dataset.index = index;
-                origin.querySelector("h4").textContent = `Origem ${index + 1}`;
+                // origin.querySelector("h4").textContent = `Origem ${index + 1}`;
 
                 origin.querySelectorAll("select, textarea, input").forEach(input => {
                     input.name = input.name.replace(/\[open_issues\]\[\d+\]/, `[open_issues][${index}]`);
@@ -78,7 +73,7 @@
         // Função para popular o select de tipo de tarefa (origem)
         function populateTrackerSelect(selectElement, selectedValue = null) {
             const trackers = JSON.parse('<%= raw Tracker.all.to_json %>');
-            selectElement.innerHTML = '<option value="">Selecione um tipo de tarefa</option>';
+            selectElement.innerHTML = '<option value="">Selecione</option>';
             trackers.forEach(tracker => {
                 const option = document.createElement('option');
                 option.value = tracker.id;
@@ -93,7 +88,7 @@
         // Função para popular o select de tipo (tracker relacionado)
         function populateRelatedTrackerSelect(selectElement, selectedValue = null) {
             const trackers = JSON.parse('<%= raw Tracker.all.to_json %>');
-            selectElement.innerHTML = '<option value="">Selecione um tipo</option>';
+            selectElement.innerHTML = '<option value="">Selecione</option>';
             trackers.forEach(tracker => {
                 const option = document.createElement('option');
                 option.value = tracker.id;
@@ -112,16 +107,16 @@
             newOrigin.classList.add("tracker-origin");
             newOrigin.dataset.index = index;
             newOrigin.innerHTML = `
-        <h4>Origem ${index + 1}</h4>
+        <h3>${index + 1}ª Configuração de origem:</h3>
         <p>
-          <label>Tipo Tarefa (Origem):</label><br>
+          <label>Tipo Origem:</label>
           <select name="settings[open_issues][${index}][tracker_origin]" class="form-control w-90 base-tracker">
-            <option value="">Selecione um tipo de tarefa</option>
+            <option value="">Selecione</option>
           </select>
         </p>
         <div class="related-trackers">
-          <h5>Trackers Relacionados</h5>
-          <button type="button" class="add-related-tracker">Adicionar Tracker Relacionado</button>
+          <h4>Atividades de Abertura com Base na Origem:</h4>
+          <button type="button" class="add-related-tracker">Adicionar Abertura</button>
         </div>
         <button type="button" class="remove-tracker-origin">Remover Origem</button>
       `;
@@ -142,7 +137,7 @@
             }
         });
 
-        // Adicionar Tracker Relacionado
+        // Adicionar Abertura
         trackerOriginsContainer.addEventListener("click", function (event) {
             if (event.target.classList.contains("add-related-tracker")) {
                 const relatedContainer = event.target.closest(".related-trackers");
@@ -154,17 +149,17 @@
                 newTracker.dataset.rindex = rIndex;
                 newTracker.innerHTML = `
           <p>
-            <label>Tipo:</label>
+            <label>Tipo Abertura:</label>
             <select name="settings[open_issues][${originIndex}][related_trackers][${rIndex}][type]" class="form-control w-90 related-tracker-select">
-              <option value="">Selecione um tipo</option>
+              <option value="">Selecione</option>
             </select>
           </p>
           <p>
-            <label>Descrição:</label>
-            <textarea name="settings[open_issues][${originIndex}][related_trackers][${rIndex}][template]"
-              class="form-control w-90" placeholder="Descrição do Tracker"></textarea>
+            <label>Template Descrição Abertura:</label>
+            <textarea rows="6" name="settings[open_issues][${originIndex}][related_trackers][${rIndex}][template]"
+              class="form-control w-90" placeholder="Template em para ser usado na abetura das atividades"></textarea>
           </p>
-          <button type="button" class="remove-related-tracker">Remover</button>
+          <button type="button" class="remove-related-tracker">Remover Abertura</button>
         `;
 
                 relatedContainer.insertBefore(newTracker, event.target);
@@ -198,3 +193,48 @@
 
     });
 </script>
+
+<style>
+    .remove-related-tracker {
+        float: right;
+        font-size: 16px;
+        color: white;
+        background-color: red;
+        cursor: pointer;
+    }
+    .add-related-tracker {
+        margin-top: 5px;
+        float: right;
+        font-size: 16px;
+        color: white;
+        background-color: green;
+        cursor: pointer;
+    }
+    .remove-tracker-origin{
+        margin-top: 5px;
+        float: left;
+        font-size: 16px;
+        color: white;
+        background-color: black;
+        cursor: pointer;
+    }
+    .add-tracker-origin {
+        margin-top: 15px;
+        float: left;
+        font-size: 20px;
+        color: white;
+        background-color: cornflowerblue;
+        cursor: pointer;
+        width: 100%;
+        padding: 19px;
+        margin-bottom: 15px;
+        height: auto!important;
+    }
+    .related-tracker {
+        border-bottom: solid 1px #d0d0d0;
+        padding-bottom: 50px;
+    }
+    .tracker-origin{
+        margin-bottom: 90px;
+    }
+</style>
