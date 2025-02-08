@@ -1,20 +1,190 @@
-<p>
-  <label for="settings_open_issues">Tipo Tarefa (Origem):</label><br>
-  <%= select_tag 'settings[open_issues][tracker_origin]', options_from_collection_for_select(Tracker.all, :id, :name, (Setting.plugin_multiple_tasks_opener.dig('open_issues', 'tracker_origin') || nil)), class: "form-control w-90 base-tracker", prompt: 'Nenhum' %>
-</p>
+<div id="tracker-origins">
+  <% open_issues = Setting.plugin_multiple_tasks_opener['open_issues'] || {} %>
 
-<% Tracker.all.each do |tracker| %>
-  <div class="tracker-settings">
-    <h4><%= tracker.name %></h4>
+  <pre>
+    <%= open_issues.inspect %>
+  </pre>
 
-    <p>
-      <label for="settings_open_issues[<%= tracker.id %>][color]">Cor:</label><br>
-      <%= text_field_tag "settings[open_issues][#{tracker.id}][color]", Setting.plugin_multiple_tasks_opener.dig('open_issues', tracker.id.to_s, 'color'), class: "form-control w-90", placeholder: 'Cor do Tracker' %>
-    </p>
+  <% open_issues.each_with_index do |(key, issue), index| %>
+    <div class="tracker-origin" data-index="<%= index %>">
+      <h4>Origem <%= index + 1 %></h4>
 
-    <p>
-      <label for="settings_open_issues[<%= tracker.id %>][description]">Descrição:</label><br>
-      <%= text_area_tag "settings[open_issues][#{tracker.id}][description]", Setting.plugin_multiple_tasks_opener.dig('open_issues', tracker.id.to_s, 'description'), class: "form-control w-90", placeholder: 'Descrição do Tracker' %>
-    </p>
-  </div>
-<% end %>
+      <p>
+        <label>Tipo Tarefa (Origem):</label><br>
+        <% selected_tracker_origin = issue['tracker_origin'].to_s.presence || '' %>
+        <%= select_tag "settings[open_issues][#{key}][tracker_origin]",
+                       options_from_collection_for_select(Tracker.all, :id, :name, selected_tracker_origin),
+                       class: "form-control w-90 base-tracker", prompt: 'Selecione um tipo de tarefa' %>
+      </p>
+
+      <div class="related-trackers">
+        <h5>Trackers Relacionados</h5>
+
+        <% (issue['related_trackers'] || {}).each_with_index do |(r_key, tracker), r_index| %>
+          <div class="related-tracker" data-rindex="<%= r_index %>">
+            <p>
+              <label>Tipo:</label>
+              <% selected_tracker_type = tracker['type'].to_s.presence || '' %>
+              <%= select_tag "settings[open_issues][#{key}][related_trackers][#{r_key}][type]",
+                             options_from_collection_for_select(Tracker.all, :id, :name, selected_tracker_type),
+                             class: "form-control w-90 related-tracker-select" %>
+            </p>
+            <p>
+              <label>Descrição:</label>
+              <%= text_area_tag "settings[open_issues][#{key}][related_trackers][#{r_key}][template]",
+                                tracker['template'].to_s,
+                                class: "form-control w-90",
+                                placeholder: 'Descrição do Tracker' %>
+            </p>
+            <button type="button" class="remove-related-tracker">Remover</button>
+          </div>
+        <% end %>
+
+        <button type="button" class="add-related-tracker">Adicionar Tracker Relacionado</button>
+      </div>
+
+      <button type="button" class="remove-tracker-origin">Remover Origem</button>
+    </div>
+  <% end %>
+
+  <button type="button" id="add-tracker-origin">Adicionar Nova Origem</button>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const trackerOriginsContainer = document.getElementById("tracker-origins");
+        const addTrackerOriginButton = document.getElementById("add-tracker-origin");
+
+        function updateIndexes() {
+            document.querySelectorAll(".tracker-origin").forEach((origin, index) => {
+                origin.dataset.index = index;
+                origin.querySelector("h4").textContent = `Origem ${index + 1}`;
+
+                origin.querySelectorAll("select, textarea, input").forEach(input => {
+                    input.name = input.name.replace(/\[open_issues\]\[\d+\]/, `[open_issues][${index}]`);
+                });
+
+                origin.querySelectorAll(".related-tracker").forEach((tracker, rIndex) => {
+                    tracker.dataset.rindex = rIndex;
+                    tracker.querySelectorAll("select, textarea, input").forEach(input => {
+                        input.name = input.name.replace(/\[related_trackers\]\[\d+\]/, `[related_trackers][${rIndex}]`);
+                    });
+                });
+            });
+        }
+
+        // Função para popular o select de tipo de tarefa (origem)
+        function populateTrackerSelect(selectElement) {
+            const trackers = JSON.parse('<%= raw Tracker.all.to_json %>');
+            selectElement.innerHTML = '<option value="">Selecione um tipo de tarefa</option>';
+            trackers.forEach(tracker => {
+                const option = document.createElement('option');
+                option.value = tracker.id;
+                option.text = tracker.name;
+                selectElement.appendChild(option);
+            });
+        }
+
+        // Função para popular o select de tipo (tracker relacionado)
+        function populateRelatedTrackerSelect(selectElement) {
+            const trackers = JSON.parse('<%= raw Tracker.all.to_json %>');
+            selectElement.innerHTML = '<option value="">Selecione um tipo</option>';
+            trackers.forEach(tracker => {
+                const option = document.createElement('option');
+                option.value = tracker.id;
+                option.text = tracker.name;
+                selectElement.appendChild(option);
+            });
+        }
+
+        // Adicionar Origem
+        addTrackerOriginButton.addEventListener("click", function () {
+            const index = document.querySelectorAll(".tracker-origin").length;
+            const newOrigin = document.createElement("div");
+            newOrigin.classList.add("tracker-origin");
+            newOrigin.dataset.index = index;
+            newOrigin.innerHTML = `
+        <h4>Origem ${index + 1}</h4>
+        <p>
+          <label>Tipo Tarefa (Origem):</label><br>
+          <select name="settings[open_issues][${index}][tracker_origin]" class="form-control w-90 base-tracker">
+            <option value="">Selecione um tipo de tarefa</option>
+          </select>
+        </p>
+        <div class="related-trackers">
+          <h5>Trackers Relacionados</h5>
+          <button type="button" class="add-related-tracker">Adicionar Tracker Relacionado</button>
+        </div>
+        <button type="button" class="remove-tracker-origin">Remover Origem</button>
+      `;
+
+            trackerOriginsContainer.insertBefore(newOrigin, addTrackerOriginButton);
+
+            const newSelect = newOrigin.querySelector('.base-tracker');
+            populateTrackerSelect(newSelect);
+
+            updateIndexes();
+        });
+
+        // Remover Origem
+        trackerOriginsContainer.addEventListener("click", function (event) {
+            if (event.target.classList.contains("remove-tracker-origin")) {
+                event.target.closest(".tracker-origin").remove();
+                updateIndexes();
+            }
+        });
+
+        // Adicionar Tracker Relacionado
+        trackerOriginsContainer.addEventListener("click", function (event) {
+            if (event.target.classList.contains("add-related-tracker")) {
+                const relatedContainer = event.target.closest(".related-trackers");
+                const originIndex = event.target.closest(".tracker-origin").dataset.index;
+                const rIndex = relatedContainer.querySelectorAll(".related-tracker").length;
+
+                const newTracker = document.createElement("div");
+                newTracker.classList.add("related-tracker");
+                newTracker.dataset.rindex = rIndex;
+                newTracker.innerHTML = `
+          <p>
+            <label>Tipo:</label>
+            <select name="settings[open_issues][${originIndex}][related_trackers][${rIndex}][type]" class="form-control w-90 related-tracker-select">
+              <option value="">Selecione um tipo</option>
+            </select>
+          </p>
+          <p>
+            <label>Descrição:</label>
+            <textarea name="settings[open_issues][${originIndex}][related_trackers][${rIndex}][template]"
+              class="form-control w-90" placeholder="Descrição do Tracker"></textarea>
+          </p>
+          <button type="button" class="remove-related-tracker">Remover</button>
+        `;
+
+                relatedContainer.insertBefore(newTracker, event.target);
+
+                const newTrackerSelect = newTracker.querySelector('.related-tracker-select');
+                populateRelatedTrackerSelect(newTrackerSelect);
+
+                updateIndexes();
+            }
+        });
+
+        // Remover Tracker Relacionado
+        trackerOriginsContainer.addEventListener("click", function (event) {
+            if (event.target.classList.contains("remove-related-tracker")) {
+                event.target.closest(".related-tracker").remove();
+                updateIndexes();
+            }
+        });
+
+        // Popula os selects existentes ao carregar a página
+        document.querySelectorAll('.base-tracker').forEach(select => {
+            populateTrackerSelect(select);
+        });
+
+        // Popula os selects de tipo de trackers relacionados existentes ao carregar a página
+        document.querySelectorAll('.related-tracker-select').forEach(select => {
+            populateRelatedTrackerSelect(select);
+        });
+
+    });
+</script>
