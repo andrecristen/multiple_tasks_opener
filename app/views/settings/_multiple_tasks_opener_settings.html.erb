@@ -7,43 +7,29 @@
       <p>
         <label>Tipo Origem:</label>
         <% selected_tracker_origin = issue['tracker_origin'].to_s.presence || '' %>
-        <%= select_tag "settings[open_issues][#{key}][tracker_origin]",
-                       options_from_collection_for_select(Tracker.all, :id, :name, selected_tracker_origin),
-                       class: "form-control w-90 base-tracker", prompt: 'Selecione',
-                       'data-selected' => selected_tracker_origin %>
+        <%= select_tag "settings[open_issues][#{key}][tracker_origin]", options_from_collection_for_select(Tracker.all, :id, :name, selected_tracker_origin), class: "form-control w-90 base-tracker", prompt: 'Selecione', 'data-selected' => selected_tracker_origin %>
       </p>
-
       <div class="related-trackers">
         <h4>Atividades de Abertura com Base na Origem:</h4>
-
         <% (issue['related_trackers'] || {}).each_with_index do |(r_key, tracker), r_index| %>
           <div class="related-tracker" data-rindex="<%= r_index %>">
             <p>
               <label>Tipo Abertura:</label>
               <% selected_tracker_type = tracker['type'].to_s.presence || '' %>
-              <%= select_tag "settings[open_issues][#{key}][related_trackers][#{r_key}][type]",
-                             options_from_collection_for_select(Tracker.all, :id, :name, selected_tracker_type),
-                             class: "form-control w-90 related-tracker-select",
-                             'data-selected' => selected_tracker_type %>
+              <%= select_tag "settings[open_issues][#{key}][related_trackers][#{r_key}][type]", options_from_collection_for_select(Tracker.all, :id, :name, selected_tracker_type), class: "form-control w-90 related-tracker-select", 'data-selected' => selected_tracker_type %>
             </p>
             <p>
               <label>Template Descrição Abertura:</label>
-              <%= text_area_tag "settings[open_issues][#{key}][related_trackers][#{r_key}][template]",
-                                tracker['template'].to_s,
-                                class: "form-control w-90",
-                                placeholder: 'Descrição de abertura', rows: 6 %>
+              <%= text_area_tag "settings[open_issues][#{key}][related_trackers][#{r_key}][template]", tracker['template'].to_s, class: "form-control w-90", placeholder: 'Descrição de abertura', rows: 6 %>
             </p>
             <button type="button" class="remove-related-tracker">Remover Abertura</button>
           </div>
         <% end %>
-
         <button type="button" class="add-related-tracker">Adicionar Abertura</button>
       </div>
-
       <button type="button" class="remove-tracker-origin">Remover Origem</button>
     </div>
   <% end %>
-
   <button type="button" id="add-tracker-origin" class="add-tracker-origin">Adicionar Nova Origem</button>
 </div>
 
@@ -55,12 +41,9 @@
         function updateIndexes() {
             document.querySelectorAll(".tracker-origin").forEach((origin, index) => {
                 origin.dataset.index = index;
-                // origin.querySelector("h4").textContent = `Origem ${index + 1}`;
-
                 origin.querySelectorAll("select, textarea, input").forEach(input => {
                     input.name = input.name.replace(/\[open_issues\]\[\d+\]/, `[open_issues][${index}]`);
                 });
-
                 origin.querySelectorAll(".related-tracker").forEach((tracker, rIndex) => {
                     tracker.dataset.rindex = rIndex;
                     tracker.querySelectorAll("select, textarea, input").forEach(input => {
@@ -120,12 +103,9 @@
         </div>
         <button type="button" class="remove-tracker-origin">Remover Origem</button>
       `;
-
             trackerOriginsContainer.insertBefore(newOrigin, addTrackerOriginButton);
-
             const newSelect = newOrigin.querySelector('.base-tracker');
             populateTrackerSelect(newSelect);
-
             updateIndexes();
         });
 
@@ -143,7 +123,6 @@
                 const relatedContainer = event.target.closest(".related-trackers");
                 const originIndex = event.target.closest(".tracker-origin").dataset.index;
                 const rIndex = relatedContainer.querySelectorAll(".related-tracker").length;
-
                 const newTracker = document.createElement("div");
                 newTracker.classList.add("related-tracker");
                 newTracker.dataset.rindex = rIndex;
@@ -161,12 +140,9 @@
           </p>
           <button type="button" class="remove-related-tracker">Remover Abertura</button>
         `;
-
                 relatedContainer.insertBefore(newTracker, event.target);
-
                 const newTrackerSelect = newTracker.querySelector('.related-tracker-select');
                 populateRelatedTrackerSelect(newTrackerSelect);
-
                 updateIndexes();
             }
         });
@@ -236,5 +212,8 @@
     }
     .tracker-origin{
         margin-bottom: 90px;
+    }
+    .w-90{
+        width: 90%!important;
     }
 </style>
