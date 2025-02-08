@@ -1,6 +1,6 @@
 <p>
   <label for="settings_open_issues">Tipo Tarefa (Origem):</label><br>
-  <%= select_tag 'settings[open_issues][type]', options_from_collection_for_select(Tracker.all, :id, :name, Setting.plugin_multiple_tasks_opener['open_issues']['type']), class: "form-control w-90 base-tracker", prompt: 'Nenhum' %>
+  <%= select_tag 'settings[open_issues][tracker_origin]', options_from_collection_for_select(Tracker.all, :id, :name, (Setting.plugin_multiple_tasks_opener.dig('open_issues', 'tracker_origin') || nil)), class: "form-control w-90 base-tracker", prompt: 'Nenhum' %>
 </p>
 
 <% Tracker.all.each do |tracker| %>
