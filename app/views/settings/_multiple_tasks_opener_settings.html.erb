@@ -2,7 +2,7 @@
   <% open_issues = Setting.plugin_multiple_tasks_opener['open_issues'] || {} %>
 
   <pre>
-    <%= open_issues.inspect %>
+    <%= JSON.pretty_generate(open_issues) %>
   </pre>
 
   <% open_issues.each_with_index do |(key, issue), index| %>
@@ -14,7 +14,8 @@
         <% selected_tracker_origin = issue['tracker_origin'].to_s.presence || '' %>
         <%= select_tag "settings[open_issues][#{key}][tracker_origin]",
                        options_from_collection_for_select(Tracker.all, :id, :name, selected_tracker_origin),
-                       class: "form-control w-90 base-tracker", prompt: 'Selecione um tipo de tarefa' %>
+                       class: "form-control w-90 base-tracker", prompt: 'Selecione um tipo de tarefa',
+                       'data-selected' => selected_tracker_origin %>
       </p>
 
       <div class="related-trackers">
@@ -27,7 +28,8 @@
               <% selected_tracker_type = tracker['type'].to_s.presence || '' %>
               <%= select_tag "settings[open_issues][#{key}][related_trackers][#{r_key}][type]",
                              options_from_collection_for_select(Tracker.all, :id, :name, selected_tracker_type),
-                             class: "form-control w-90 related-tracker-select" %>
+                             class: "form-control w-90 related-tracker-select",
+                             'data-selected' => selected_tracker_type %>
             </p>
             <p>
               <label>Descrição:</label>
@@ -74,25 +76,31 @@
         }
 
         // Função para popular o select de tipo de tarefa (origem)
-        function populateTrackerSelect(selectElement) {
+        function populateTrackerSelect(selectElement, selectedValue = null) {
             const trackers = JSON.parse('<%= raw Tracker.all.to_json %>');
             selectElement.innerHTML = '<option value="">Selecione um tipo de tarefa</option>';
             trackers.forEach(tracker => {
                 const option = document.createElement('option');
                 option.value = tracker.id;
                 option.text = tracker.name;
+                if (selectedValue && tracker.id.toString() === selectedValue.toString()) {
+                    option.selected = true;
+                }
                 selectElement.appendChild(option);
             });
         }
 
         // Função para popular o select de tipo (tracker relacionado)
-        function populateRelatedTrackerSelect(selectElement) {
+        function populateRelatedTrackerSelect(selectElement, selectedValue = null) {
             const trackers = JSON.parse('<%= raw Tracker.all.to_json %>');
             selectElement.innerHTML = '<option value="">Selecione um tipo</option>';
             trackers.forEach(tracker => {
                 const option = document.createElement('option');
                 option.value = tracker.id;
                 option.text = tracker.name;
+                if (selectedValue && tracker.id.toString() === selectedValue.toString()) {
+                    option.selected = true;
+                }
                 selectElement.appendChild(option);
             });
         }
@@ -176,14 +184,16 @@
             }
         });
 
-        // Popula os selects existentes ao carregar a página
+        // Popula os selects existentes ao carregar a página - USE DATA ATTRIBUTE
         document.querySelectorAll('.base-tracker').forEach(select => {
-            populateTrackerSelect(select);
+            const selectedValue = select.dataset.selected;
+            populateTrackerSelect(select, selectedValue);
         });
 
         // Popula os selects de tipo de trackers relacionados existentes ao carregar a página
         document.querySelectorAll('.related-tracker-select').forEach(select => {
-            populateRelatedTrackerSelect(select);
+            const selectedValue = select.dataset.selected;
+            populateRelatedTrackerSelect(select, selectedValue);
         });
 
     });
