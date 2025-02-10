@@ -1,0 +1,37 @@
+<h1>Gerar Tarefas de Execução</h1>
+<hr/>
+<%= form_with url: execution_tasks_path(parent_issue_id: @issue.id), method: :post do |form| %>
+  <% @config.each do |tracker| %>
+    <fieldset>
+      <% tracker_name = Tracker.find_by(id: tracker['type'])&.name %>
+      <legend><%= tracker_name || 'Tipo de Atividade não encontrado' %>:</legend>
+      <%= form.hidden_field "related_tasks[][type]", value: tracker['type'] %>
+      <div class="wiki">
+        <%= form.text_area "related_tasks[][description]", class: "wiki-edit", rows: 10, placeholder: "Descreva a tarefa...", value: tracker['template'].html_safe %>
+      </div>
+    </fieldset>
+  <% end %>
+
+  <%= form.submit "Criar Tarefas", class: "btn" %>
+<% end %>
+
+<%= link_to 'Voltar', @issue %>
+
+<!-- Adicionando os mesmos arquivos da tela padrão de abertura de atividades -->
+<script src="/javascripts/jstoolbar/jstoolbar.js"></script>
+<script src="/javascripts/jstoolbar/textile.js"></script>
+<script src="/javascripts/jstoolbar/lang/jstoolbar-pt.js"></script>
+<link rel="stylesheet" href="/stylesheets/jstoolbar.css">
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll('.wiki-edit').forEach(function (textarea) {
+            var toolbar = new jsToolBar(textarea);
+            toolbar.draw();
+        });
+    });
+
+</script>
+
+
+

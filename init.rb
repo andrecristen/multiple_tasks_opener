@@ -1,5 +1,3 @@
-require_relative 'lib/multiple_tasks_opener/hooks'
-
 Redmine::Plugin.register :multiple_tasks_opener do
   name 'Multiple Tasks Opener'
   author 'André Cristen'

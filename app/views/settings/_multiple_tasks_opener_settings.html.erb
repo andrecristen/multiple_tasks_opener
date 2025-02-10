@@ -1,6 +1,10 @@
 <div id="tracker-origins">
   <% open_issues = Setting.plugin_multiple_tasks_opener['open_issues'] || {} %>
 
+<!--  <pre>-->
+    <%#= JSON.pretty_generate(open_issues) %>
+<!--  </pre>-->
+
   <% open_issues.each_with_index do |(key, issue), index| %>
     <div class="tracker-origin" data-index="<%= index %>">
       <h3><%= index + 1 %>ª Configuração de origem:</h3>
