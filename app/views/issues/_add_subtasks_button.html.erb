@@ -1,5 +1,5 @@
 <% if User.current.allowed_to?(:add_issues, @project) %>
   <p>
-    <%= link_to 'Gerar Tarefas de Execução', new_execution_task_path(parent_issue_id: @issue.id), class: 'icon icon-add' %>
+    <%= link_to 'Gerar Tarefas de Execução', new_execution_task_path(open_from: @issue.id), class: 'icon icon-add' %>
   </p>
 <% end %>
