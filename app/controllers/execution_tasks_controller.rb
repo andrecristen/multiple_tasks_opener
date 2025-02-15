@@ -13,43 +13,20 @@ class ExecutionTasksController < IssuesController
 
   def create
     related_tasks = params[:related_tasks]
-    @config = load_config(@issue.tracker_id) # Carrega a configuração para o form
-
     if related_tasks.present? && related_tasks.is_a?(Array)
-      success = true # Variável para controlar se todas as tarefas foram criadas com sucesso
       related_tasks.each do |task|
-        new_task = Issue.new(
-          project_id: @issue.project_id,
-          tracker_id: task['type'],
-          subject: task['subject'] || @issue.subject,
-          description: task['description'],
-          assigned_to_id: task['assigned_to_id'] || @issue.assigned_to_id,
-          estimated_hours: task['estimated_hours'] || @issue.estimated_hours,
-          start_date: @issue.start_date,
-          due_date: @issue.due_date,
-          priority_id: @issue.priority_id,
-          status_id: @issue.status_id,
-          author_id: User.current.id,
-          parent_id: @issue.id
-        )
-
-        # Tentativa para campos personalizados @todo revisar isso
-        # @issue.custom_fields.each do |cf|
-        #   if cf.trackers.include?(Tracker.find_by(id: new_task.tracker_id))
-        #     new_task.custom_field_values[cf.id.to_s] = @issue.custom_field_values[cf.id.to_s]
-        #   end
-        # end
-
-        unless new_task.save
-          flash[:error] = "Erro ao criar tarefa: <ul>" # Início da lista não ordenada
-          new_task.errors.full_messages.each do |message|
-            flash[:error] += "<li>#{message}</li>" # Adiciona cada erro como um item de lista
-          end
-          flash[:error] += "</ul>" # Fim da lista não ordenada
+        new_task = create_issue(task)
+        if new_task.save
+          create_attachments_issue(new_task, task)
+        else
+          flash[:error] ||= "Erro ao criar tarefa: <ul>"
+          flash[:error] += new_task.errors.full_messages.map { |message| "<li>#{message}</li>" }.join
+          flash[:error] += "</ul>"
           @related_tasks = related_tasks
           render :new and return
         end
       end
+
       flash[:notice] = 'Tarefas de Execução geradas com sucesso!'
       redirect_to @issue
     else
@@ -59,6 +36,58 @@ class ExecutionTasksController < IssuesController
   end
 
   private
+
+  def create_issue(task)
+    Issue.new(
+      project_id: @issue.project_id,
+      tracker_id: task['type'],
+      subject: task['subject'] || @issue.subject,
+      description: task['description'],
+      assigned_to_id: task['assigned_to_id'] || @issue.assigned_to_id,
+      estimated_hours: task['estimated_hours'] || @issue.estimated_hours,
+      start_date: @issue.start_date,
+      due_date: @issue.due_date,
+      priority_id: @issue.priority_id,
+      status_id: @issue.status_id,
+      author_id: User.current.id,
+      parent_id: @issue.id
+    )
+  end
+
+  def create_attachments_issue(new_task, task)
+    if task['attachments'].present?
+      task['attachments'].each do |_index, attachment_params|
+        file = Attachment.create(
+          container: new_task,
+          file: uploaded_file_from_params(attachment_params),
+          author: User.current,
+          description: attachment_params['description']
+        )
+
+        unless file.persisted?
+          flash[:error] ||= "Erro ao anexar arquivos: <ul>"
+          flash[:error] += "<li>#{file.errors.full_messages.join(', ')}</li>"
+          flash[:error] += "</ul>"
+        end
+      end
+    end
+  end
+
+  def uploaded_file_from_params(attachment_params)
+    return nil unless attachment_params['token']
+
+    attachment = Attachment.find_by_token(attachment_params['token'])
+    return nil unless attachment&.diskfile
+
+    temp_file = Tempfile.new(File.basename(attachment.diskfile))
+    FileUtils.copy_file(attachment.diskfile, temp_file.path)
+
+    ActionDispatch::Http::UploadedFile.new(
+      filename: attachment.filename,
+      type: attachment.content_type,
+      tempfile: temp_file
+    )
+  end
 
   def find_issue
     @issue = Issue.find_by(id: params[:open_from])
