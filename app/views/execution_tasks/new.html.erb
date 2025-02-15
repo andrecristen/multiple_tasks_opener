@@ -2,7 +2,9 @@
   <div class="related_tasks">
     <% @config.each_with_index do |tracker, index| %>
       <fieldset class="tracker-card">
-        <legend><%= Tracker.find_by(id: tracker['type'])&.name || 'Tipo de Atividade não encontrado' %></legend>
+        <legend>
+          <h1><%= Tracker.find_by(id: tracker['type'])&.name || 'Tipo de Atividade não encontrado' %></h1>
+        </legend>
         <%= hidden_field_tag "related_tasks[][type]", tracker['type'] %>
 
         <% default_subject = "#{@issue.subject} [#{Tracker.find_by(id: tracker['type'])&.name}]" %>
@@ -20,7 +22,7 @@
 
         <div class="form-group">
           <%= label_tag "related_tasks[][assigned_to_id]", "Atribuído para", class: "form-label" %>
-          <%= select_tag "related_tasks[][assigned_to_id]", options_for_select(User.all.collect { |u| [u.name, u.id] }), class: "form-select" %>
+          <%= select_tag "related_tasks[][assigned_to_id]", options_for_select(User.all.collect { |u| [u.name, u.id] }, User.current.id), class: "form-select" %>
         </div>
 
         <div class="form-group">
@@ -30,7 +32,7 @@
       </fieldset>
     <% end %>
   </div>
-
+  <br/>
   <%= form.submit "Criar Tarefas", class: "btn btn-primary mt-3" %>
 <% end %>
 
