@@ -1,42 +1,44 @@
 <%= form_with model: @issue, class: "new_issue", url: execution_tasks_path(open_from: @issue.id), method: :post, html: { multipart: true } do |form| %>
   <div class="related_tasks">
     <% @config.each_with_index do |tracker, index| %>
-      <fieldset class="tracker-card">
-        <legend>
-          <h1><%= Tracker.find_by(id: tracker['type'])&.name || 'Tipo de Atividade não encontrado' %></h1>
-        </legend>
-        <%= hidden_field_tag "related_tasks[][type]", tracker['type'] %>
+      <div class="box">
+        <fieldset class="tracker-card">
+          <legend>
+            <h1><%= Tracker.find_by(id: tracker['type'])&.name || 'Tipo de Atividade não encontrado' %></h1>
+          </legend>
+          <%= hidden_field_tag "related_tasks[][type]", tracker['type'] %>
 
-        <% default_subject = "[#{Tracker.find_by(id: tracker['type'])&.name}] #{@issue.subject}" %>
-        <% default_description = tracker['template'] %>
+          <% default_subject = "[#{Tracker.find_by(id: tracker['type'])&.name}] #{@issue.subject}" %>
+          <% default_description = tracker['template'] %>
 
-        <div class="form-group">
-          <%= label_tag "related_tasks[][subject]", "Título", class: "form-label" %>
-          <%= text_field_tag "related_tasks[][subject]", default_subject, class: "form-control" %>
-        </div>
+          <div class="form-group">
+            <%= label_tag "related_tasks[][subject]", "Título", class: "form-label" %>
+            <%= text_field_tag "related_tasks[][subject]", default_subject, class: "form-control" %>
+          </div>
 
-        <div class="form-group">
-          <%= label_tag "related_tasks[][assigned_to_id]", "Atribuído para", class: "form-label" %>
-          <%= select_tag "related_tasks[][assigned_to_id]", options_for_select(User.all.collect { |u| [u.name, u.id] }, User.current.id), class: "form-select" %>
-        </div>
+          <div class="form-group">
+            <%= label_tag "related_tasks[][assigned_to_id]", "Atribuído para", class: "form-label" %>
+            <%= select_tag "related_tasks[][assigned_to_id]", options_for_select(User.all.collect { |u| [u.name, u.id] }, User.current.id), class: "form-select" %>
+          </div>
 
-        <div class="form-group">
-          <%= label_tag "related_tasks[][estimated_hours]", "Tempo Estimado", class: "form-label" %>
-          <%= text_field_tag "related_tasks[][estimated_hours]", nil, class: "form-control", placeholder: "Horas estimadas" %>
-        </div>
+          <div class="form-group">
+            <%= label_tag "related_tasks[][estimated_hours]", "Tempo Estimado", class: "form-label" %>
+            <%= text_field_tag "related_tasks[][estimated_hours]", nil, class: "form-control", placeholder: "Horas estimadas" %>
+          </div>
 
-        <div class="form-group">
-          <%= label_tag "related_tasks[][description]", "Descrição", class: "form-label" %>
-          <%= text_area_tag "related_tasks[][description]", default_description, class: "form-control wiki-edit", rows: 30, data: { auto_complete: true }, id: "related_tasks_#{index}_description" %>
-        </div>
-        <%= wikitoolbar_for "related_tasks_#{index}_description" %>
+          <div class="form-group">
+            <%= label_tag "related_tasks[][description]", "Descrição", class: "form-label" %>
+            <%= text_area_tag "related_tasks[][description]", default_description, class: "form-control wiki-edit", rows: 30, data: { auto_complete: true }, id: "related_tasks_#{index}_description" %>
+          </div>
+          <%= wikitoolbar_for "related_tasks_#{index}_description" %>
 
-        <div class="form-group">
-          <%= label_tag "related_tasks[][attachments]", "Anexos", class: "form-label" %>
-          <%= render partial: 'attachments/form', locals: { container: @issue, attachment_param: "related_tasks[][attachments]" } %>
-        </div>
+          <div class="form-group">
+            <%= label_tag "related_tasks[][attachments]", "Anexos", class: "form-label" %>
+            <%= render partial: 'attachments/form', locals: { container: @issue, attachment_param: "related_tasks[][attachments]" } %>
+          </div>
 
-      </fieldset>
+        </fieldset>
+      </div>
     <% end %>
   </div>
   <br/>
