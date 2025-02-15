@@ -13,7 +13,10 @@ class ExecutionTasksController < IssuesController
 
   def create
     related_tasks = params[:related_tasks]
+    @config = load_config(@issue.tracker_id) # Carrega a configuração para o form
+
     if related_tasks.present? && related_tasks.is_a?(Array)
+      success = true # Variável para controlar se todas as tarefas foram criadas com sucesso
       related_tasks.each do |task|
         new_task = Issue.new(
           project_id: @issue.project_id,
@@ -38,8 +41,13 @@ class ExecutionTasksController < IssuesController
         # end
 
         unless new_task.save
-          flash[:error] = "Erro ao criar as tarefas. Erros: #{new_task.errors.full_messages.join('<br/> -')}"
-          redirect_to @issue and return
+          flash[:error] = "Erro ao criar tarefa: <ul>" # Início da lista não ordenada
+          new_task.errors.full_messages.each do |message|
+            flash[:error] += "<li>#{message}</li>" # Adiciona cada erro como um item de lista
+          end
+          flash[:error] += "</ul>" # Fim da lista não ordenada
+          @related_tasks = related_tasks
+          render :new and return
         end
       end
       flash[:notice] = 'Tarefas de Execução geradas com sucesso!'

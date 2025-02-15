@@ -7,17 +7,12 @@
         </legend>
         <%= hidden_field_tag "related_tasks[][type]", tracker['type'] %>
 
-        <% default_subject = "#{@issue.subject} [#{Tracker.find_by(id: tracker['type'])&.name}]" %>
+        <% default_subject = "[#{Tracker.find_by(id: tracker['type'])&.name}] #{@issue.subject}" %>
         <% default_description = tracker['template'] %>
 
         <div class="form-group">
           <%= label_tag "related_tasks[][subject]", "Título", class: "form-label" %>
           <%= text_field_tag "related_tasks[][subject]", default_subject, class: "form-control" %>
-        </div>
-
-        <div class="form-group">
-          <%= label_tag "related_tasks[][description]", "Descrição", class: "form-label" %>
-          <%= text_area_tag "related_tasks[][description]", default_description, class: "form-control", rows: 3 %>
         </div>
 
         <div class="form-group">
@@ -29,6 +24,13 @@
           <%= label_tag "related_tasks[][estimated_hours]", "Tempo Estimado", class: "form-label" %>
           <%= text_field_tag "related_tasks[][estimated_hours]", nil, class: "form-control", placeholder: "Horas estimadas" %>
         </div>
+
+        <div class="form-group">
+          <%= label_tag "related_tasks[][description]", "Descrição", class: "form-label" %>
+          <%= text_area_tag "related_tasks[][description]", default_description, class: "form-control wiki-edit", rows: 30, data: { auto_complete: true }, id: "related_tasks_#{index}_description" %>
+        </div>
+        <%= wikitoolbar_for "related_tasks_#{index}_description" %>
+
       </fieldset>
     <% end %>
   </div>
