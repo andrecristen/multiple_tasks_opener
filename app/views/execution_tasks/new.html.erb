@@ -45,6 +45,21 @@
   <%= form.submit "Criar Tarefas", class: "btn btn-primary mt-3" %>
 <% end %>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof addFile === 'function') {
+            const originalAddFile = addFile;
+            addFile = function(inputEl, file, eagerUpload) {
+                inputEl = $(handleFileDropEvent.target).parent().parent().parent().parent().find('input:file.filedrop');
+                var nextAttachmentId = Date.now();
+                addFile.nextAttachmentId = nextAttachmentId;
+                originalAddFile.nextAttachmentId = nextAttachmentId;
+                originalAddFile(inputEl, file, eagerUpload);
+            };
+        }
+    });
+</script>
+
 <style>
     .related_tasks {
         display: flex;
