@@ -30,7 +30,7 @@
             <%= label_tag "related_tasks[][description]", "Descrição", class: "form-label" %>
             <%= text_area_tag "related_tasks[][description]", default_description, class: "form-control wiki-edit", rows: 30, data: { auto_complete: true }, id: "related_tasks_#{index}_description" %>
           </div>
-          <%= wikitoolbar_for "related_tasks_#{index}_description" %>
+          <%= wikitoolbar_for "related_tasks_#{index}_description", preview_issue_path(:project_id => @issue.project)%>
 
           <div class="form-group">
             <%= label_tag "related_tasks[][attachments]", "Anexos", class: "form-label" %>
@@ -57,6 +57,38 @@
                 originalAddFile(inputEl, file, eagerUpload);
             };
         }
+
+        function fixPreviewImages() {
+            $(".wiki-preview img").each(function () {
+                let img = $(this);
+                let src = img.attr("src");
+                if (src && !src.startsWith("http") && !src.startsWith("/attachments/download/")) {
+                    // Encontra o campo filename correspondente ao src da imagem
+                    let descriptionInput = $("input.filename").filter(function () {
+                        return $(this).val().trim() === src.trim();
+                    }).first();
+                    if (descriptionInput.length) {
+                        // Pega o container do anexo
+                        let attachmentContainer = descriptionInput.parent();
+                        // Encontra o campo token dentro do container
+                        let tokenInput = attachmentContainer.find("input.token");
+                        if (tokenInput.length) {
+                            let attachmentId = tokenInput.val().split(".")[0]; // Extrai o ID correto
+                            img.attr("src", `/attachments/download/${attachmentId}/${src}`);
+                        }
+                    }
+                }
+            });
+        }
+        // Monitorar mudanças em todas as instâncias de .wiki-preview
+        document.querySelectorAll(".wiki-preview").forEach(previewContainer => {
+            const observer = new MutationObserver(() => {
+                fixPreviewImages();
+            });
+
+            observer.observe(previewContainer, { childList: true, subtree: true });
+        });
+
     });
 </script>
 
