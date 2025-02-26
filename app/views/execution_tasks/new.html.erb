@@ -7,43 +7,44 @@
               <legend>
                 <h1><%= Tracker.find_by(id: tracker['type'])&.name || 'Tipo de Atividade não encontrado' %></h1>
               </legend>
-              <%= hidden_field_tag "related_tasks[#{index}][type]", tracker['type'] %>
+              <div class="tracker-content">
+                <%= hidden_field_tag "related_tasks[#{index}][type]", tracker['type'] %>
 
-              <% default_subject = "[#{Tracker.find_by(id: tracker['type'])&.name}] #{@issueOrigin.subject}" %>
-              <% default_description = tracker['template'] %>
+                <% default_subject = "[#{Tracker.find_by(id: tracker['type'])&.name}] #{@issueOrigin.subject}" %>
+                <% default_description = tracker['template'] %>
 
-              <div class="form-group">
-                <%= label_tag "related_tasks[#{index}][subject]", "Título*", class: "form-label" %>
-                <%= text_field_tag "related_tasks[#{index}][subject]", default_subject, class: "form-control", required: true %>
+                <div class="form-group">
+                  <%= label_tag "related_tasks[#{index}][subject]", "Título*", class: "form-label" %>
+                  <%= text_field_tag "related_tasks[#{index}][subject]", default_subject, class: "form-control", required: true %>
+                </div>
+
+                <div class="form-group">
+                  <%= label_tag "related_tasks[#{index}][assigned_to_id]", "Atribuído para*", class: "form-label" %>
+                  <%= select_tag "related_tasks[#{index}][assigned_to_id]", options_for_select(User.all.collect { |u| [u.name, u.id] }, User.current.id), class: "form-select", required: true %>
+                </div>
+
+                <div class="form-group">
+                  <%= label_tag "related_tasks[#{index}][estimated_hours]", "Tempo Estimado", class: "form-label" %>
+                  <%= text_field_tag "related_tasks[#{index}][estimated_hours]", nil, class: "form-control", placeholder: "Horas estimadas" %>
+                </div>
+
+                <% tracker_object = Tracker.find_by(id: tracker['type']) %>
+                <% if tracker_object %>
+                  <% related_task = Issue.new(project: @issueOrigin.project, tracker: tracker_object) %>
+                  <%= render 'issues/form_custom_fields', '@issue': related_task %>
+                <% end %>
+
+                <div class="form-group">
+                  <%= label_tag "related_tasks[][description]", "Descrição*", class: "form-label" %>
+                  <%= text_area_tag "related_tasks[#{index}][description]", default_description, class: "form-control wiki-edit", rows: 30, required: true, data: { auto_complete: true }, id: "related_tasks_#{index}_description" %>
+                </div>
+                <%= wikitoolbar_for "related_tasks_#{index}_description", preview_issue_path(:project_id => @issueOrigin.project)%>
+
+                <div class="form-group">
+                  <%= label_tag "related_tasks[#{index}][attachments]", "Anexos", class: "form-label" %>
+                  <%= render partial: 'attachments/form', locals: { container: @issueOrigin, attachment_param: "related_tasks[#{index}][attachments]" } %>
+                </div>
               </div>
-
-              <div class="form-group">
-                <%= label_tag "related_tasks[#{index}][assigned_to_id]", "Atribuído para*", class: "form-label" %>
-                <%= select_tag "related_tasks[#{index}][assigned_to_id]", options_for_select(User.all.collect { |u| [u.name, u.id] }, User.current.id), class: "form-select", required: true %>
-              </div>
-
-              <div class="form-group">
-                <%= label_tag "related_tasks[#{index}][estimated_hours]", "Tempo Estimado", class: "form-label" %>
-                <%= text_field_tag "related_tasks[#{index}][estimated_hours]", nil, class: "form-control", placeholder: "Horas estimadas" %>
-              </div>
-
-              <% tracker_object = Tracker.find_by(id: tracker['type']) %>
-              <% if tracker_object %>
-                <% related_task = Issue.new(project: @issueOrigin.project, tracker: tracker_object) %>
-                <%= render 'issues/form_custom_fields', '@issue': related_task %>
-              <% end %>
-
-              <div class="form-group">
-                <%= label_tag "related_tasks[][description]", "Descrição*", class: "form-label" %>
-                <%= text_area_tag "related_tasks[#{index}][description]", default_description, class: "form-control wiki-edit", rows: 30, required: true, data: { auto_complete: true }, id: "related_tasks_#{index}_description" %>
-              </div>
-              <%= wikitoolbar_for "related_tasks_#{index}_description", preview_issue_path(:project_id => @issueOrigin.project)%>
-
-              <div class="form-group">
-                <%= label_tag "related_tasks[#{index}][attachments]", "Anexos", class: "form-label" %>
-                <%= render partial: 'attachments/form', locals: { container: @issueOrigin, attachment_param: "related_tasks[#{index}][attachments]" } %>
-              </div>
-
             </fieldset>
           </div>
         <% end %>
@@ -122,6 +123,24 @@
             }
         });
 
+        //Transforma os cards em collapses
+        document.querySelectorAll('.tracker-card legend').forEach(legend => {
+            legend.style.cursor = 'pointer';
+            legend.style.minWidth = '50%';
+            let fieldset = legend.closest('fieldset');
+            let content = fieldset.querySelector('.tracker-content');
+            fieldset.dataset.collapsed = "false";
+            legend.addEventListener('click', function() {
+                if (fieldset.dataset.collapsed === "false") {
+                    content.style.display = 'none';
+                    fieldset.dataset.collapsed = "true";
+                } else {
+                    content.style.display = '';
+                    fieldset.dataset.collapsed = "false";
+                }
+            });
+        });
+
     });
 </script>
 
@@ -184,5 +203,27 @@
     .splitcontentleft {
         margin-right: 0!important;
     }
+
+    .tracker-card legend {
+        background: #e0e0e0;
+        padding: 5px 10px;
+        border-radius: 5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+    }
+
+    .tracker-card legend::after {
+        content: "▼";
+        font-size: 14px;
+        margin-left: 10px;
+        transition: transform 0.3s;
+    }
+
+    .tracker-card[data-collapsed="true"] legend::after {
+        transform: rotate(-90deg);
+    }
+
 
 </style>
