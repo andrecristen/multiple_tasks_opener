@@ -8,7 +8,7 @@ class ExecutionTasksController < IssuesController
   include IssuesHelper
 
   def new
-    @config = load_config(@issue.tracker_id)
+    @config = load_config(@issueOrigin.tracker_id)
   end
 
   def create
@@ -19,7 +19,7 @@ class ExecutionTasksController < IssuesController
         if new_task.save
           create_attachments_issue(new_task, task)
         else
-          flash[:error] ||= "Erro ao criar tarefa: <ul>"
+          flash[:error] ||= "Erro ao criar tarefa ["+task['subject'] || @issueOrigin.subject+"]: <ul>"
           flash[:error] += new_task.errors.full_messages.map { |message| "<li>#{message}</li>" }.join
           flash[:error] += "</ul>"
           @related_tasks = related_tasks
@@ -28,30 +28,47 @@ class ExecutionTasksController < IssuesController
       end
 
       flash[:notice] = 'Tarefas de Execução geradas com sucesso!'
-      redirect_to @issue
+      redirect_to @issueOrigin
     else
       flash[:error] = 'Formato inválido para tarefas relacionadas'
-      redirect_to @issue
+      redirect_to @issueOrigin
     end
   end
 
   private
 
   def create_issue(task)
-    Issue.new(
-      project_id: @issue.project_id,
+    custom_field_values = {}
+    if task['custom_field_values'].present?
+      task['custom_field_values'].each do |field_id, value|
+        custom_field = CustomField.find_by(id: field_id)
+        if custom_field
+          if custom_field.is_required? && value.blank?
+            flash[:error] ||= ""
+            flash[:error] += "O campo obrigatório '#{custom_field.name}' não foi preenchido. <br/>"
+            return nil # Impede a criação do issue
+          end
+          custom_field_values[field_id.to_s] = value
+        end
+      end
+    end
+
+    issue = Issue.new(
+      project_id: @issueOrigin.project_id,
       tracker_id: task['type'],
-      subject: task['subject'] || @issue.subject,
+      subject: task['subject'] || @issueOrigin.subject,
       description: task['description'],
-      assigned_to_id: task['assigned_to_id'] || @issue.assigned_to_id,
-      estimated_hours: task['estimated_hours'] || @issue.estimated_hours,
-      start_date: @issue.start_date,
-      due_date: @issue.due_date,
-      priority_id: @issue.priority_id,
-      status_id: @issue.status_id,
+      assigned_to_id: task['assigned_to_id'] || @issueOrigin.assigned_to_id,
+      estimated_hours: task['estimated_hours'] || @issueOrigin.estimated_hours,
+      start_date: @issueOrigin.start_date,
+      due_date: @issueOrigin.due_date,
+      priority_id: @issueOrigin.priority_id,
+      status_id: @issueOrigin.status_id,
       author_id: User.current.id,
-      parent_id: @issue.id
+      parent_id: @issueOrigin.id,
+      custom_field_values: custom_field_values
     )
+    return issue
   end
 
   def create_attachments_issue(new_task, task)
@@ -90,14 +107,14 @@ class ExecutionTasksController < IssuesController
   end
 
   def find_issue
-    @issue = Issue.find_by(id: params[:open_from])
-    raise ActiveRecord::RecordNotFound, "Atividade não encontrada" if @issue.nil?
-    @parent_issue_author = @issue.author&.name
-    @parent_issue_assigned_to = @issue.assigned_to&.name
+    @issueOrigin = Issue.find_by(id: params[:open_from])
+    raise ActiveRecord::RecordNotFound, "Atividade não encontrada" if @issueOrigin.nil?
+    @parent_issue_author = @issueOrigin.author&.name
+    @parent_issue_assigned_to = @issueOrigin.assigned_to&.name
   end
 
   def set_project
-    @project = @issue.project
+    @project = @issueOrigin.project
   end
 
   def set_priorities
@@ -105,7 +122,7 @@ class ExecutionTasksController < IssuesController
   end
 
   def set_versions
-    @versions = @issue.assignable_versions
+    @versions = @issueOrigin.assignable_versions
   end
 
   def load_config(tracker_origin)
