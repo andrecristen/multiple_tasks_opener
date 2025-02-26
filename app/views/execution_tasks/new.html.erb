@@ -3,28 +3,28 @@
     <% if @config.present? %>
         <% @config.each_with_index do |tracker, index| %>
           <div class="box">
-            <fieldset class="tracker-card">
+            <fieldset class="tracker-card" data-index="<%= index %>">
               <legend>
                 <h1><%= Tracker.find_by(id: tracker['type'])&.name || 'Tipo de Atividade não encontrado' %></h1>
               </legend>
-              <%= hidden_field_tag "related_tasks[][type]", tracker['type'] %>
+              <%= hidden_field_tag "related_tasks[#{index}][type]", tracker['type'] %>
 
               <% default_subject = "[#{Tracker.find_by(id: tracker['type'])&.name}] #{@issueOrigin.subject}" %>
               <% default_description = tracker['template'] %>
 
               <div class="form-group">
-                <%= label_tag "related_tasks[][subject]", "Título", class: "form-label" %>
-                <%= text_field_tag "related_tasks[][subject]", default_subject, class: "form-control" %>
+                <%= label_tag "related_tasks[#{index}][subject]", "Título", class: "form-label" %>
+                <%= text_field_tag "related_tasks[#{index}][subject]", default_subject, class: "form-control" %>
               </div>
 
               <div class="form-group">
-                <%= label_tag "related_tasks[][assigned_to_id]", "Atribuído para", class: "form-label" %>
-                <%= select_tag "related_tasks[][assigned_to_id]", options_for_select(User.all.collect { |u| [u.name, u.id] }, User.current.id), class: "form-select" %>
+                <%= label_tag "related_tasks[#{index}][assigned_to_id]", "Atribuído para", class: "form-label" %>
+                <%= select_tag "related_tasks[#{index}][assigned_to_id]", options_for_select(User.all.collect { |u| [u.name, u.id] }, User.current.id), class: "form-select" %>
               </div>
 
               <div class="form-group">
-                <%= label_tag "related_tasks[][estimated_hours]", "Tempo Estimado", class: "form-label" %>
-                <%= text_field_tag "related_tasks[][estimated_hours]", nil, class: "form-control", placeholder: "Horas estimadas" %>
+                <%= label_tag "related_tasks[#{index}][estimated_hours]", "Tempo Estimado", class: "form-label" %>
+                <%= text_field_tag "related_tasks[#{index}][estimated_hours]", nil, class: "form-control", placeholder: "Horas estimadas" %>
               </div>
 
               <% tracker_object = Tracker.find_by(id: tracker['type']) %>
@@ -35,13 +35,13 @@
 
               <div class="form-group">
                 <%= label_tag "related_tasks[][description]", "Descrição", class: "form-label" %>
-                <%= text_area_tag "related_tasks[][description]", default_description, class: "form-control wiki-edit", rows: 30, data: { auto_complete: true }, id: "related_tasks_#{index}_description" %>
+                <%= text_area_tag "related_tasks[#{index}][description]", default_description, class: "form-control wiki-edit", rows: 30, data: { auto_complete: true }, id: "related_tasks_#{index}_description" %>
               </div>
               <%= wikitoolbar_for "related_tasks_#{index}_description", preview_issue_path(:project_id => @issueOrigin.project)%>
 
               <div class="form-group">
-                <%= label_tag "related_tasks[][attachments]", "Anexos", class: "form-label" %>
-                <%= render partial: 'attachments/form', locals: { container: @issueOrigin, attachment_param: "related_tasks[][attachments]" } %>
+                <%= label_tag "related_tasks[#{index}][attachments]", "Anexos", class: "form-label" %>
+                <%= render partial: 'attachments/form', locals: { container: @issueOrigin, attachment_param: "related_tasks[#{index}][attachments]" } %>
               </div>
 
             </fieldset>
@@ -59,11 +59,14 @@
         if (typeof addFile === 'function') {
             const originalAddFile = addFile;
             addFile = function(inputEl, file, eagerUpload) {
-                inputEl = $(handleFileDropEvent.target).parent().parent().parent().parent().find('input:file.filedrop');
-                var nextAttachmentId = Date.now();
+                const nextAttachmentId = Date.now();
                 addFile.nextAttachmentId = nextAttachmentId;
                 originalAddFile.nextAttachmentId = nextAttachmentId;
+                if (handleFileDropEvent.target !== "") {
+                    inputEl = $(handleFileDropEvent.target).parent().parent().parent().parent().find('input:file.filedrop');
+                }
                 originalAddFile(inputEl, file, eagerUpload);
+                handleFileDropEvent.target = "";
             };
         }
 
@@ -103,8 +106,13 @@
         customFields.forEach(function(field) {
             // Obtém o ID do custom field
             const customFieldId = field.name.match(/\d+/)[0];
-            // Altera o nome do campo para incluir "related_tasks[]"
-            field.name = `related_tasks[][custom_field_values][${customFieldId}]`;
+            const fieldset = field.closest('fieldset[data-index]');
+            if (fieldset) {
+                const dataIndex = fieldset.getAttribute('data-index');
+                field.name = `related_tasks[${dataIndex}][custom_field_values][${customFieldId}]`;
+            } else {
+                field.name = `related_tasks[][custom_field_values][${customFieldId}]`;
+            }
         });
 
     });
@@ -139,6 +147,35 @@
         margin: 8px 0;
         border: 1px solid #ccc;
         border-radius: 5px;
+    }
+
+    .splitcontent {
+        display: block!important;
+    }
+
+    .splitcontent p {
+        display: grid!important;
+        margin: 0 0 10px;
+    }
+
+    .splitcontent p label {
+        font-weight: bold;
+    }
+
+    .splitcontent p input {
+        width: 100%!important;
+    }
+
+    .splitcontent p textarea {
+        width: 100%!important;
+    }
+
+    .splitcontentright {
+        margin-left: 0!important;
+    }
+
+    .splitcontentleft {
+        margin-right: 0!important;
     }
 
 </style>
