@@ -13,13 +13,13 @@
               <% default_description = tracker['template'] %>
 
               <div class="form-group">
-                <%= label_tag "related_tasks[#{index}][subject]", "Título", class: "form-label" %>
-                <%= text_field_tag "related_tasks[#{index}][subject]", default_subject, class: "form-control" %>
+                <%= label_tag "related_tasks[#{index}][subject]", "Título*", class: "form-label" %>
+                <%= text_field_tag "related_tasks[#{index}][subject]", default_subject, class: "form-control", required: true %>
               </div>
 
               <div class="form-group">
-                <%= label_tag "related_tasks[#{index}][assigned_to_id]", "Atribuído para", class: "form-label" %>
-                <%= select_tag "related_tasks[#{index}][assigned_to_id]", options_for_select(User.all.collect { |u| [u.name, u.id] }, User.current.id), class: "form-select" %>
+                <%= label_tag "related_tasks[#{index}][assigned_to_id]", "Atribuído para*", class: "form-label" %>
+                <%= select_tag "related_tasks[#{index}][assigned_to_id]", options_for_select(User.all.collect { |u| [u.name, u.id] }, User.current.id), class: "form-select", required: true %>
               </div>
 
               <div class="form-group">
@@ -34,8 +34,8 @@
               <% end %>
 
               <div class="form-group">
-                <%= label_tag "related_tasks[][description]", "Descrição", class: "form-label" %>
-                <%= text_area_tag "related_tasks[#{index}][description]", default_description, class: "form-control wiki-edit", rows: 30, data: { auto_complete: true }, id: "related_tasks_#{index}_description" %>
+                <%= label_tag "related_tasks[][description]", "Descrição*", class: "form-label" %>
+                <%= text_area_tag "related_tasks[#{index}][description]", default_description, class: "form-control wiki-edit", rows: 30, required: true, data: { auto_complete: true }, id: "related_tasks_#{index}_description" %>
               </div>
               <%= wikitoolbar_for "related_tasks_#{index}_description", preview_issue_path(:project_id => @issueOrigin.project)%>
 
@@ -47,6 +47,8 @@
             </fieldset>
           </div>
         <% end %>
+    <% else %>
+      <div class="flash error" id="flash_notice">Tipo de tarefa não possui nenhuma configuração definida.<a href="/settings/plugin/multiple_tasks_opener">Realize a configuração.</a></div>
     <% end %>
   </div>
   <br/>
@@ -112,6 +114,11 @@
                 field.name = `related_tasks[${dataIndex}][custom_field_values][${customFieldId}]`;
             } else {
                 field.name = `related_tasks[][custom_field_values][${customFieldId}]`;
+            }
+            // Verifica se o campo é obrigatório
+            const isRequired = field.closest('p').querySelector('span.required') !== null;
+            if (isRequired) {
+                field.setAttribute('required', 'true');
             }
         });
 
