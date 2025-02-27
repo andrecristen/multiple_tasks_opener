@@ -54,7 +54,9 @@ class ExecutionTasksController < IssuesController
       status_id: @issueOrigin.status_id,
       author_id: User.current.id,
       parent_id: task['relationship_type'] == "subtask" ? @issueOrigin.id : nil,
-      custom_field_values: format_custom_fields(task)
+      custom_field_values: format_custom_fields(task),
+      fixed_version_id: @issueOrigin.fixed_version_id,
+      category_id: @issueOrigin.category_id
     )
   end
 
