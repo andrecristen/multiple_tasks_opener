@@ -85,6 +85,13 @@
                     inputEl = $(handleFileDropEvent.target).parent().parent().parent().parent().find('input:file.filedrop');
                 }
                 originalAddFile(inputEl, file, eagerUpload);
+            };
+        }
+
+        if (typeof addInlineAttachmentMarkup === 'function') {
+            const originalAddInlineAttachmentMarkup = addInlineAttachmentMarkup;
+            addInlineAttachmentMarkup = function(file) {
+                originalAddInlineAttachmentMarkup(file);
                 handleFileDropEvent.target = "";
             };
         }
