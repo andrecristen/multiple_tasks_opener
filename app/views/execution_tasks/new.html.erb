@@ -30,7 +30,7 @@
 
                 <div class="form-group">
                   <%= label_tag "related_tasks[#{index}][estimated_hours]", "Tempo Estimado", class: "form-label" %>
-                  <%= text_field_tag "related_tasks[#{index}][estimated_hours]", nil, class: "form-control", placeholder: "Horas estimadas" %>
+                  <%= text_field_tag "related_tasks[#{index}][estimated_hours]", nil, class: "form-control" %>
                 </div>
 
                 <% tracker_object = Tracker.find_by(id: tracker['type']) %>
@@ -49,6 +49,9 @@
                   <%= label_tag "related_tasks[#{index}][attachments]", "Anexos", class: "form-label" %>
                   <%= render partial: 'attachments/form', locals: { container: @issueOrigin, attachment_param: "related_tasks[#{index}][attachments]" } %>
                 </div>
+              </div>
+              <div class="collapse-footer">
+                <button type="button" class="btn-collapse">Recolher ▲</button>
               </div>
             </fieldset>
           </div>
@@ -133,20 +136,25 @@
         });
 
         //Transforma os cards em collapses
-        document.querySelectorAll('.tracker-card legend').forEach(legend => {
-            legend.style.cursor = 'pointer';
-            legend.style.minWidth = '50%';
-            let fieldset = legend.closest('fieldset');
+        function toggleCollapse(fieldset) {
             let content = fieldset.querySelector('.tracker-content');
-            fieldset.dataset.collapsed = "false";
-            legend.addEventListener('click', function() {
-                if (fieldset.dataset.collapsed === "false") {
-                    content.style.display = 'none';
-                    fieldset.dataset.collapsed = "true";
-                } else {
-                    content.style.display = '';
-                    fieldset.dataset.collapsed = "false";
-                }
+            let collapseButton = fieldset.querySelector('.btn-collapse');
+
+            if (fieldset.dataset.collapsed === "false" || fieldset.dataset.collapsed === undefined) {
+                content.style.display = 'none';
+                fieldset.dataset.collapsed = "true";
+                collapseButton.innerText = "Expandir ▼";
+            } else {
+                content.style.display = '';
+                fieldset.dataset.collapsed = "false";
+                collapseButton.innerText = "Recolher ▲";
+            }
+        }
+
+        document.querySelectorAll('.tracker-card legend, .btn-collapse').forEach(element => {
+            element.addEventListener('click', function() {
+                let fieldset = this.closest('fieldset');
+                toggleCollapse(fieldset);
             });
         });
 
@@ -154,36 +162,45 @@
 </script>
 
 <style>
+
     .related_tasks {
         display: flex;
         flex-direction: column;
         gap: 15px;
     }
 
-    .tracker-card {
-        border: 1px solid #ddd;
-        padding: 15px;
-        border-radius: 8px;
-        background: #f9f9f9;
-        transition: all 0.3s ease-in-out;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
+    /* Formulário */
 
     .form-group {
-        margin-bottom: 10px;
+        margin-bottom: 15px;
     }
 
     .form-label {
         font-weight: bold;
         display: block;
+        margin-bottom: 5px;
+        color: #333;
     }
 
     .form-control,
     .form-select {
         width: 100%;
-        margin: 8px 0;
         border: 1px solid #ccc;
-        border-radius: 5px;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+        outline: none;
+    }
+
+    .form-control::placeholder {
+        color: #aaa;
+        font-style: italic;
     }
 
     .splitcontent {
@@ -203,6 +220,10 @@
         width: 100%!important;
     }
 
+    .splitcontent .custom-field-filedroplistner input  {
+        width: auto!important;
+    }
+
     .splitcontent p textarea {
         width: 100%!important;
     }
@@ -215,16 +236,35 @@
         margin-right: 0!important;
     }
 
+    /* Container de tracker */
+
+    .tracker-card {
+        border: 1px solid #ddd;
+        padding: 15px;
+        border-radius: 12px;
+        background: #ffffff;
+        transition: all 0.3s ease-in-out;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        position: relative;
+    }
+
     .tracker-card legend {
-        background: #e0e0e0;
-        padding: 10px 15px;
-        border-radius: 5px;
+        background: #f1f1f1;
+        padding: 12px 18px;
+        border-radius: 8px;
         display: flex;
         justify-content: space-between;
         align-items: center;
         cursor: pointer;
         font-size: 18px;
         font-weight: bold;
+        transition: background 0.3s ease-in-out;
+        border: 1px solid #cdcdcd;
+        min-width: 40%;
+    }
+
+    .tracker-card legend:hover {
+        background: #e0e0e0;
     }
 
     .tracker-card legend::after {
@@ -237,6 +277,27 @@
     .tracker-card[data-collapsed="true"] legend::after {
         transform: rotate(-90deg);
     }
+
+    .collapse-footer {
+        text-align: right;
+        margin-top: 10px;
+    }
+
+    .btn-collapse {
+        background: transparent;
+        border: none;
+        color: #007bff;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: bold;
+        transition: color 0.3s;
+    }
+
+    .btn-collapse:hover {
+        color: #0056b3;
+    }
+
+    /* Actions */
 
     .actions-container {
         width: 100%;
