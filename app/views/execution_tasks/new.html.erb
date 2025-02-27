@@ -19,6 +19,11 @@
                 </div>
 
                 <div class="form-group">
+                  <%= label_tag "related_tasks[#{index}][relationship_type]", "Tipo de Relação*", class: "form-label" %>
+                  <%= select_tag "related_tasks[#{index}][relationship_type]", options_for_select([["Tarefa Relacionada", "relates"], ["Subtarefa", "subtask"]], "relates"), class: "form-select", required: true %>
+                </div>
+
+                <div class="form-group">
                   <%= label_tag "related_tasks[#{index}][assigned_to_id]", "Atribuído para*", class: "form-label" %>
                   <%= select_tag "related_tasks[#{index}][assigned_to_id]", options_for_select(User.all.collect { |u| [u.name, u.id] }, User.current.id), class: "form-select", required: true %>
                 </div>

@@ -18,6 +18,9 @@ class ExecutionTasksController < IssuesController
         new_task = create_issue(task)
         if new_task.save
           create_attachments_issue(new_task, task)
+          if task['relationship_type'] != "subtask"
+            create_relationship(@issueOrigin, new_task, task['relationship_type'])
+          end
         else
           flash[:error] ||= "Erro ao criar tarefa ["+task['subject'] || @issueOrigin.subject+"]: <ul>"
           flash[:error] += new_task.errors.full_messages.map { |message| "<li>#{message}</li>" }.join
@@ -50,7 +53,7 @@ class ExecutionTasksController < IssuesController
       priority_id: @issueOrigin.priority_id,
       status_id: @issueOrigin.status_id,
       author_id: User.current.id,
-      parent_id: @issueOrigin.id,
+      parent_id: task['relationship_type'] == "subtask" ? @issueOrigin.id : nil,
       custom_field_values: format_custom_fields(task)
     )
   end
@@ -73,6 +76,19 @@ class ExecutionTasksController < IssuesController
       end
     end
     custom_field_values
+  end
+
+  def create_relationship(origin, target, relation_type)
+    relation = IssueRelation.new(
+      issue_from: origin,
+      issue_to: target,
+      relation_type: relation_type
+    )
+    unless relation.save
+      flash[:error] ||= "Erro ao criar relação entre as tarefas: <ul>"
+      flash[:error] += "<li>#{relation.errors.full_messages.join(', ')}</li>"
+      flash[:error] += "</ul>"
+    end
   end
 
   def create_attachments_issue(new_task, task)
