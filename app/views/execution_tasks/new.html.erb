@@ -36,6 +36,10 @@
                 <% tracker_object = Tracker.find_by(id: tracker['type']) %>
                 <% if tracker_object %>
                   <% related_task = Issue.new(project: @issueOrigin.project, tracker: tracker_object) %>
+                  <% related_task.editable_custom_field_values.each do |cfv| %>
+                    <% origin_value = @issueOrigin.custom_field_value(cfv.custom_field) %>
+                    <% cfv.value = origin_value if origin_value.present? %>
+                  <% end %>
                   <%= render 'issues/form_custom_fields', '@issue': related_task %>
                 <% end %>
 
