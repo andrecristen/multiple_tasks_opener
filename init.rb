@@ -5,6 +5,6 @@ Redmine::Plugin.register :multiple_tasks_opener do
   version '0.0.1'
   url 'https://github.com/andrecristen/multiple_tasks_opener'
   author_url 'https://github.com/andrecristen'
-  settings default: { 'open_issues' => [{ 'tracker_origin' => '', 'related_trackers' => [] }] }, partial: 'settings/multiple_tasks_opener_settings'
+  settings default: { 'open_issues' => { '0' => { 'tracker_origin' => '', 'related_trackers' => {} } } }, partial: 'settings/multiple_tasks_opener_settings'
   require_relative 'lib/multiple_tasks_opener/hooks'
 end
