@@ -6,10 +6,8 @@ Este plugin para Redmine permite a abertura de múltiplas tarefas relacionadas c
 
 1. Clone o repositório na pasta de plugins do Redmine:
 
-   ```sh
-   cd /caminho/para/seu/redmine/plugins
-   git clone https://github.com/andrecristen/multiple_tasks_opener.git
-   ```
+ cd /caminho/para/seu/redmine/plugins
+ git clone https://github.com/andrecristen/multiple_tasks_opener.git
 
 2. Reinicie o Redmine:
 
