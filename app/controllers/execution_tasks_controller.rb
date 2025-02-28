@@ -14,28 +14,33 @@ class ExecutionTasksController < IssuesController
 
   def create
     related_tasks = params[:related_tasks]
-    if related_tasks
-      related_tasks.each do |key, task|
-        new_task = create_issue(task)
-        if new_task.save
-          create_attachments_issue(new_task, task)
-          if task['relationship_type'] != "subtask"
-            create_relationship(@issueOrigin, new_task, task['relationship_type'])
-          end
-        else
-          flash[:error] ||= "Erro ao criar tarefa ["+task['subject'] || @issueOrigin.subject+"]: <ul>"
-          flash[:error] += new_task.errors.full_messages.map { |message| "<li>#{message}</li>" }.join
-          flash[:error] += "</ul>"
-          @related_tasks = related_tasks
-          render :new and return
-        end
-      end
-
-      flash[:notice] = 'Tarefas de Execução geradas com sucesso!'
-      redirect_to @issueOrigin
-    else
+    if related_tasks.blank?
       flash[:error] = 'Formato inválido para tarefas relacionadas'
-      redirect_to @issueOrigin
+      return redirect_to @issueOrigin
+    end
+    begin
+      ActiveRecord::Base.transaction do
+        created_tasks = []
+        related_tasks.each do |_key, task|
+          new_task = create_issue(task)
+          unless new_task.save
+            flash[:error] ||= "Erro ao criar tarefa ["+task['subject'] || @issueOrigin.subject+"]: <ul>"
+            flash[:error] += new_task.errors.full_messages.map { |message| "<li>#{message}</li>" }.join
+            flash[:error] += "</ul>"
+            raise ActiveRecord::Rollback
+          end
+          create_attachments_issue(new_task, task)
+          create_relationship(@issueOrigin, new_task, task['relationship_type']) if task['relationship_type'] != "subtask"
+          created_tasks << new_task
+        end
+        flash[:notice] = 'Tarefas de Execução geradas com sucesso!'
+        redirect_to @issueOrigin
+      end
+    rescue => e
+      flash[:error] ||= "Ocorreu um erro ao criar as tarefas: #{e.message}"
+      @related_tasks = related_tasks
+      @config = load_config(@issueOrigin.tracker_id)
+      render :new
     end
   end
 
