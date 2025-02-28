@@ -1,7 +1,7 @@
-<% if User.current.allowed_to?(:add_issues, @project) %>
+<% if User.current.allowed_to?(:manage_execution_tasks, @project) %>
   <div class="workflow-tasks-button" style="margin-top: 10px; text-align: right;">
     <%= link_to new_execution_task_path(open_from: @issue.id), class: 'icon icon-add btn btn-primary' do %>
-        Criar tarefas de execução
+      Criar tarefas de execução
     <% end %>
   </div>
 <% end %>

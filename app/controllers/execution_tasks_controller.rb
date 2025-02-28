@@ -3,6 +3,7 @@ class ExecutionTasksController < IssuesController
   before_action :set_project
   before_action :set_priorities
   before_action :set_versions
+  before_action :authorize, only: [:new, :create]
 
   helper :issues
   include IssuesHelper

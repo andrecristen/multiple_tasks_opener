@@ -1,3 +1,34 @@
-= multiple_tasks_opener
+= Multiple Tasks Opener
 
-Description goes here
+Este plugin para Redmine permite a abertura de múltiplas tarefas relacionadas com base em uma configuração personalizada.
+
+== Instalação
+
+1. Clone o repositório na pasta de plugins do Redmine:
+
+   ```sh
+   cd /caminho/para/seu/redmine/plugins
+   git clone https://github.com/andrecristen/multiple_tasks_opener.git
+   ```
+
+2. Reinicie o Redmine:
+
+== Configuração
+
+1. Acesse o Redmine como administrador.
+2. Vá para **Administração > Plugins** e localize o plugin "Multiple Tasks Opener".
+3. Clique em **Configurar** para definir os tipos de origem e os tipos de tarefas relacionadas.
+4. Vá para **Administração > Papéis e permissões** e conceda a permissão "Criar tarefas de execução" para os perfis desejados.
+5. Vá para Configurações do projeto > Módulos e ative o módulo "Multiple Tasks Opener".
+
+== Uso
+
+1. Acesse uma issue no Redmine.
+2. Se tiver permissão, verá o botão "Criar tarefas de execução".
+3. Clique no botão e preencha as informações das tarefas relacionadas para serem criadas.
+
+== Permissões
+
+O plugin define a seguinte permissão que deve ser ativada no perfil do usuário:
+
+- **Gerenciar Tarefas de Execução**: Permite criar novas tarefas de execução a partir de uma issue existente.
