@@ -1,10 +1,5 @@
 <div id="tracker-origins">
   <% open_issues = Setting.plugin_multiple_tasks_opener['open_issues'] || {} %>
-
-<!--  <pre>-->
-    <%#= JSON.pretty_generate(open_issues) %>
-<!--  </pre>-->
-
   <% open_issues.each_with_index do |(key, issue), index| %>
     <div class="tracker-origin" data-index="<%= index %>">
       <h3><%= index + 1 %>ª Configuração de origem:</h3>
@@ -34,7 +29,7 @@
       <button type="button" class="remove-tracker-origin">Remover Origem</button>
     </div>
   <% end %>
-  <button type="button" id="add-tracker-origin" class="add-tracker-origin">Adicionar Nova Origem</button>
+  <button type="button" id="add-tracker-origin" class="add-tracker-origin">Adicionar Origem</button>
 </div>
 
 <script>
@@ -189,33 +184,30 @@
         color: white;
         background-color: green;
         cursor: pointer;
+        margin-bottom: 15px;
     }
     .remove-tracker-origin{
         margin-top: 5px;
-        float: left;
         font-size: 16px;
         color: white;
         background-color: black;
         cursor: pointer;
+        margin-bottom: 15px;
     }
     .add-tracker-origin {
-        margin-top: 15px;
-        float: left;
-        font-size: 20px;
+        margin-top: 5px;
+        font-size: 16px;
         color: white;
         background-color: cornflowerblue;
         cursor: pointer;
-        width: 100%;
-        padding: 19px;
         margin-bottom: 15px;
-        height: auto!important;
     }
     .related-tracker {
         border-bottom: solid 1px #d0d0d0;
         padding-bottom: 50px;
     }
     .tracker-origin{
-        margin-bottom: 90px;
+
     }
     .w-90{
         width: 90%!important;

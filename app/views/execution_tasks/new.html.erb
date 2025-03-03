@@ -5,7 +5,7 @@
           <div class="box">
             <fieldset class="tracker-card" data-index="<%= index %>">
               <legend>
-                <h1><%= Tracker.find_by(id: tracker['type'])&.name || 'Tipo de Atividade não encontrado' %></h1>
+                <h3 style="margin: 0"><%= Tracker.find_by(id: tracker['type'])&.name || 'Tipo de Atividade não encontrado' %></h3>
               </legend>
               <div class="tracker-content">
                 <%= hidden_field_tag "related_tasks[#{index}][type]", tracker['type'] %>
@@ -45,7 +45,7 @@
 
                 <div class="form-group">
                   <%= label_tag "related_tasks[][description]", "Descrição*", class: "form-label" %>
-                  <%= text_area_tag "related_tasks[#{index}][description]", default_description, class: "form-control wiki-edit", rows: 30, required: true, data: { auto_complete: true }, id: "related_tasks_#{index}_description" %>
+                  <%= text_area_tag "related_tasks[#{index}][description]", default_description, class: "form-control wiki-edit", rows: 20, required: true, data: { auto_complete: true }, id: "related_tasks_#{index}_description" %>
                 </div>
                 <%= wikitoolbar_for "related_tasks_#{index}_description", preview_issue_path(:project_id => @issueOrigin.project)%>
 
@@ -321,7 +321,7 @@
         color: white;
         font-size: 16px;
         font-weight: bold;
-        padding: 12px 20px;
+        padding: 15px 40px;
         border: none;
         border-radius: 8px;
         cursor: pointer;
@@ -332,7 +332,7 @@
         justify-content: center;
         gap: 8px;
         height: 50px !important;
-        width: 100%;
+        float: right;
     }
 
     .btn-primary:hover {
